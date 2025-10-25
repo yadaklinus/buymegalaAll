@@ -14,41 +14,57 @@ const Dashboard = async (req, res) => {
         if (!user) return res.status(400).json({ message: "User Not Found" });
 
         // Concurrently fetch counts and paginated data
-        const [totalSupports, totalTransactions, totalEarningsResult, supports, transactions] = await Promise.all([
-            prisma.support.count({ where: { creatorId: user.id,status:"SUCCESS" } }),
-            prisma.transaction.count({ where: { userId: user.id } }),
+        const [
+            totalSupports, 
+            totalTransactions, 
+            walletData, 
+            supports, 
+            transactions,
+            totalEarningsResult
+        ] = await Promise.all([
+            prisma.support.count({ where: { creatorId: user.id, status: "SUCCESS" } }),
+            prisma.transaction.count({ where: { userId: user.id, isWithdrawal: true } }),
             prisma.wallet.findUnique({
                 where: { userId: user.id },
             }),
             prisma.support.findMany({
-                where: { creatorId: user.id,status:"SUCCESS" },
+                where: { creatorId: user.id, status: "SUCCESS" },
                 take: limit,
                 skip: (supportersPage - 1) * limit,
                 orderBy: { createdAt: 'desc' }
             }),
             prisma.transaction.findMany({
-                where: { userId: user.id,isWithdrawal:true },
+                where: { userId: user.id, isWithdrawal: true },
                 take: limit,
                 skip: (payoutsPage - 1) * limit,
                 orderBy: { createdAt: 'desc' }
+            }),
+            // Calculate total earnings from all successful supports
+            prisma.support.aggregate({
+                where: { 
+                    creatorId: user.id,
+                    status: "SUCCESS" 
+                },
+                _sum: {
+                    amount: true
+                }
             })
         ]);
 
-        console.log(totalEarningsResult)
-
-        const totalEarnings = totalEarningsResult.balance
+        const totalEarnings = totalEarningsResult._sum.amount || 0;
+        const walletBalance = walletData?.balance || 0;
 
         return res.status(200).json({
             name: user.name,
-            totalEarnings: totalEarnings,
+            totalEarnings: totalEarnings, // Total amount ever received
+            walletBalance: walletBalance,  // Current wallet balance
             totalSupporters: totalSupports,
-            pageStatus: user.goLive,
             username: user.username,
             supports: {
                 data: supports,
                 totalPages: Math.ceil(totalSupports / limit)
             },
-            payouts: { // Renamed from 'traction' to match frontend
+            payouts: {
                 data: transactions,
                 totalPages: Math.ceil(totalTransactions / limit)
             }

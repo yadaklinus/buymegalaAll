@@ -1,6 +1,6 @@
 "use client"
 import { formatCurrency } from "@/components/format-currency";
-import { DollarSign, Gift, User, Copy, ExternalLink, Notebook, ChevronLeft, ChevronRight } from "lucide-react";
+import { DollarSign, Gift, User, Copy, ExternalLink, Notebook, ChevronLeft, ChevronRight, Wallet } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -50,14 +50,13 @@ const PaginationControls = ({ currentPage, totalPages, onPageChange, isLoading }
     );
 };
 
-
 export default function DashboardPage() {
     const { data: session, status } = useSession();
     const [supporters, setSupporters] = useState([]);
     const [payouts, setPayouts] = useState([]);
     const [totalEarnings, setTotalEarnings] = useState(0);
+    const [walletBalance, setWalletBalance] = useState(0);
     const [totalSupporters, setTotalSupporters] = useState(0);
-    const [activate, setActivate] = useState(false);
     const [shareLink, setShareLink] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [isPaginating, setIsPaginating] = useState(false);
@@ -114,12 +113,12 @@ export default function DashboardPage() {
                 });
 
                 setTotalEarnings(res?.data?.totalEarnings);
+                setWalletBalance(res?.data?.walletBalance);
                 setTotalSupporters(res?.data?.totalSupporters);
                 setSupporters(res?.data?.supports.data);
                 setSupportersTotalPages(res?.data?.supports?.totalPages);
                 setPayouts(res?.data?.payouts?.data);
                 setPayoutsTotalPages(res?.data?.payouts?.totalPages);
-                setActivate(res?.data?.pageStatus);
                 setUsername(res?.data?.username);
                 setDisplayName(res?.data?.name);
 
@@ -135,7 +134,7 @@ export default function DashboardPage() {
             }
         }
         if (status === "authenticated") {
-            const isInitial = !username; // Only show full-screen loader on the very first load
+            const isInitial = !username;
             main(isInitial);
             if (typeof window !== 'undefined' && username) {
                 setShareLink(`${window.location.origin}/@${username}`);
@@ -143,11 +142,8 @@ export default function DashboardPage() {
         }
     }, [status, username, supportersPage, payoutsPage]);
 
-    // Loading state for initial load
     if (isLoading) {
-        return (
-            <Loading/>
-        );
+        return <Loading/>;
     }
 
     return (
@@ -166,9 +162,24 @@ export default function DashboardPage() {
                         <div>
                             <p className="text-gray-500 text-sm font-medium">Total Earnings</p>
                             <p className="text-3xl font-bold text-gray-800 mt-1">{formatCurrency(totalEarnings)}</p>
+                            <p className="text-xs text-gray-400 mt-1">All-time revenue</p>
                         </div>
                         <div className="bg-yellow-100 p-3 rounded-lg">
                             <DollarSign className="h-8 w-8 text-yellow-500" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Wallet Balance Card */}
+                <div className="bg-white border rounded-xl p-6 transition-all duration-300 shadow-md">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-gray-500 text-sm font-medium">Wallet Balance</p>
+                            <p className="text-3xl font-bold text-gray-800 mt-1">{formatCurrency(walletBalance)}</p>
+                            <p className="text-xs text-gray-400 mt-1">Available to withdraw</p>
+                        </div>
+                        <div className="bg-green-100 p-3 rounded-lg">
+                            <Wallet className="h-8 w-8 text-green-500" />
                         </div>
                     </div>
                 </div>
@@ -179,28 +190,10 @@ export default function DashboardPage() {
                         <div>
                             <p className="text-gray-500 text-sm font-medium">Total Supporters</p>
                             <p className="text-3xl font-bold text-gray-800 mt-1">{totalSupporters || 0}</p>
+                            <p className="text-xs text-gray-400 mt-1">Unique supporters</p>
                         </div>
                         <div className="bg-blue-100 p-3 rounded-lg">
                             <User className="h-8 w-8 text-blue-500" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Page Status Card */}
-                <div className="bg-white border rounded-xl p-6 transition-all duration-300 shadow-md">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-gray-500 text-sm font-medium">Page Status</p>
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${
-                                activate
-                                    ? "bg-green-100 text-green-700 border border-green-300"
-                                    : "bg-red-100 text-red-700 border border-red-300"
-                            }`}>
-                                {activate ? "Active" : "Inactive"}
-                            </span>
-                        </div>
-                        <div className="bg-purple-100 p-3 rounded-lg">
-                            <Gift className="h-8 w-8 text-purple-500" />
                         </div>
                     </div>
                 </div>
@@ -251,7 +244,6 @@ export default function DashboardPage() {
                     </button>
                 </div>
 
-                {/* Tab content */}
                 <div className={`${isPaginating ? 'opacity-50' : ''} transition-opacity`}>
                     {activeTab === 'supporters' && (
                         <div>
@@ -260,7 +252,6 @@ export default function DashboardPage() {
                                 {supporters?.length > 0 ? (
                                     <div className="overflow-x-auto">
                                         <table className="w-full">
-                                            {/* Table Head */}
                                             <thead>
                                                 <tr className="bg-gray-100 border-b border-gray-200">
                                                     <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Supporter</th>
@@ -269,14 +260,13 @@ export default function DashboardPage() {
                                                     <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Date</th>
                                                 </tr>
                                             </thead>
-                                            {/* Table Body */}
                                             <tbody>
                                                 {supporters.map((supporter:any, index:any) => (
                                                     <tr key={supporter.id} className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${ index % 2 === 0 ? 'bg-white' : 'bg-gray-50' }`}>
                                                         <td className="py-4 px-6">
                                                             <div className="flex items-center gap-3">
                                                                 <div className="h-10 w-10 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center font-bold text-gray-900">
-                                                                    {supporter?.name?.charAt(0).toUpperCase() || "A"}
+                                                                    {supporter?.supporter?.charAt(0).toUpperCase() || "A"}
                                                                 </div>
                                                                 <span className="font-medium text-gray-700">{supporter?.supporter || "Ghost"}</span>
                                                             </div>
@@ -284,7 +274,6 @@ export default function DashboardPage() {
                                                         <td className="py-4 px-6">
                                                             <span className={`bg-${VerrColor(supporter?.status)}-100 text-${VerrColor(supporter?.status)}-700 border border-${VerrColor(supporter?.status)}-300 text-sm font-medium px-3 py-1 rounded-full`}>
                                                                 {formatCurrency(supporter?.amount)}
-
                                                             </span>
                                                         </td>
                                                         <td className="py-4 px-6">
@@ -321,7 +310,6 @@ export default function DashboardPage() {
                                 {payouts?.length > 0 ? (
                                     <div className="overflow-x-auto">
                                         <table className="w-full">
-                                            {/* Table Head */}
                                             <thead>
                                                 <tr className="bg-gray-100 border-b border-gray-200">
                                                     <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Amount</th>
@@ -329,7 +317,6 @@ export default function DashboardPage() {
                                                     <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Date</th>
                                                 </tr>
                                             </thead>
-                                            {/* Table Body */}
                                             <tbody>
                                                 {payouts?.map((payout:any, index:any) => (
                                                     <tr key={payout.id} className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${ index % 2 === 0 ? 'bg-white' : 'bg-gray-50' }`}>
@@ -337,13 +324,13 @@ export default function DashboardPage() {
                                                             <span className="text-gray-700 font-medium">{formatCurrency(payout.amount)}</span>
                                                         </td>
                                                         <td className="py-4 px-6">
-                                                            <span className={`text-sm font-medium px-3 py-1 rounded-full ${ payout.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                                            <span className={`text-sm font-medium px-3 py-1 rounded-full ${ payout.status === 'SUCCESS' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                                                                 {payout.status}
                                                             </span>
                                                         </td>
                                                         <td className="py-4 px-6">
                                                             <span className="text-gray-500 text-sm">
-                                                                {new Date(payout.date || Date.now()).toLocaleDateString()}
+                                                                {new Date(payout.createdAt || Date.now()).toLocaleDateString()}
                                                             </span>
                                                         </td>
                                                     </tr>

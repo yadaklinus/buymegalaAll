@@ -1,143 +1,68 @@
 "use client"
 
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, DollarSign, CheckCircle, Clock, ArrowLeft, Search, TrendingUp, Wallet, Send } from 'lucide-react';
 import Auths from "@/components/protect";
 import { useSession } from "next-auth/react";
-
-// Mock data for users and their transactions
-const mockUsers = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    avatar: "JD",
-    balance: 450.00,
-    totalReceived: 2850.00,
-    totalTransferred: 2400.00,
-    pendingCount: 5
-  },
-  {
-    id: 2,
-    name: "Sarah Smith",
-    email: "sarah@example.com",
-    avatar: "SS",
-    balance: 890.00,
-    totalReceived: 4560.00,
-    totalTransferred: 3670.00,
-    pendingCount: 8
-  },
-  {
-    id: 3,
-    name: "Mike Johnson",
-    email: "mike@example.com",
-    avatar: "MJ",
-    balance: 230.00,
-    totalReceived: 1890.00,
-    totalTransferred: 1660.00,
-    pendingCount: 3
-  },
-  {
-    id: 4,
-    name: "Emily Brown",
-    email: "emily@example.com",
-    avatar: "EB",
-    balance: 670.00,
-    totalReceived: 3420.00,
-    totalTransferred: 2750.00,
-    pendingCount: 6
-  },
-  {
-    id: 5,
-    name: "David Wilson",
-    email: "david@example.com",
-    avatar: "DW",
-    balance: 1200.00,
-    totalReceived: 5670.00,
-    totalTransferred: 4470.00,
-    pendingCount: 12
-  }
-];
-
-const mockTransactions = {
-  1: [
-    { id: 101, supporter: "Alice Wonder", amount: 50.00, date: "2025-09-28", status: "pending", message: "Love your work!" },
-    { id: 102, supporter: "Bob Builder", amount: 100.00, date: "2025-09-27", status: "pending", message: "Keep it up!" },
-    { id: 103, supporter: "Carol Singer", amount: 75.00, date: "2025-09-26", status: "pending", message: "" },
-    { id: 104, supporter: "Dan Trader", amount: 125.00, date: "2025-09-25", status: "pending", message: "Amazing content" },
-    { id: 105, supporter: "Eve Coder", amount: 100.00, date: "2025-09-24", status: "pending", message: "Thanks for sharing" },
-    { id: 106, supporter: "Frank Ocean", amount: 200.00, date: "2025-09-20", status: "approved", message: "Great!" },
-    { id: 107, supporter: "Grace Lee", amount: 150.00, date: "2025-09-18", status: "approved", message: "" }
-  ],
-  2: [
-    { id: 201, supporter: "Frank Ocean", amount: 150.00, date: "2025-09-29", status: "pending", message: "Excellent!" },
-    { id: 202, supporter: "Grace Lee", amount: 80.00, date: "2025-09-28", status: "pending", message: "" },
-    { id: 203, supporter: "Henry Ford", amount: 120.00, date: "2025-09-27", status: "pending", message: "Great job" },
-    { id: 204, supporter: "Iris West", amount: 90.00, date: "2025-09-26", status: "pending", message: "Keep going!" },
-    { id: 205, supporter: "Jack Black", amount: 110.00, date: "2025-09-25", status: "pending", message: "" },
-    { id: 206, supporter: "Kate Bush", amount: 85.00, date: "2025-09-24", status: "pending", message: "Love this" },
-    { id: 207, supporter: "Leo Mars", amount: 95.00, date: "2025-09-23", status: "pending", message: "" },
-    { id: 208, supporter: "Mary Jane", amount: 160.00, date: "2025-09-22", status: "pending", message: "Fantastic work" },
-    { id: 209, supporter: "Nancy Drew", amount: 180.00, date: "2025-09-15", status: "approved", message: "" }
-  ],
-  3: [
-    { id: 301, supporter: "Nancy Drew", amount: 70.00, date: "2025-09-28", status: "pending", message: "" },
-    { id: 302, supporter: "Oliver Twist", amount: 90.00, date: "2025-09-27", status: "pending", message: "Amazing!" },
-    { id: 303, supporter: "Penny Lane", amount: 70.00, date: "2025-09-26", status: "pending", message: "" },
-    { id: 304, supporter: "Quinn Park", amount: 120.00, date: "2025-09-20", status: "approved", message: "" }
-  ],
-  4: [
-    { id: 401, supporter: "Quinn Park", amount: 110.00, date: "2025-09-29", status: "pending", message: "Great content" },
-    { id: 402, supporter: "Ryan Star", amount: 105.00, date: "2025-09-28", status: "pending", message: "" },
-    { id: 403, supporter: "Sophie Turner", amount: 115.00, date: "2025-09-27", status: "pending", message: "Keep it up" },
-    { id: 404, supporter: "Tom Hardy", amount: 120.00, date: "2025-09-26", status: "pending", message: "" },
-    { id: 405, supporter: "Uma Stone", amount: 100.00, date: "2025-09-25", status: "pending", message: "Wonderful" },
-    { id: 406, supporter: "Victor Hugo", amount: 120.00, date: "2025-09-24", status: "pending", message: "" },
-    { id: 407, supporter: "Wendy Bird", amount: 200.00, date: "2025-09-18", status: "approved", message: "" }
-  ],
-  5: [
-    { id: 501, supporter: "Wendy Bird", amount: 100.00, date: "2025-09-30", status: "pending", message: "Excellent work!" },
-    { id: 502, supporter: "Xander Cage", amount: 95.00, date: "2025-09-29", status: "pending", message: "" },
-    { id: 503, supporter: "Yara Green", amount: 110.00, date: "2025-09-28", status: "pending", message: "Love it" },
-    { id: 504, supporter: "Zack Moon", amount: 105.00, date: "2025-09-27", status: "pending", message: "" },
-    { id: 505, supporter: "Amy Lake", amount: 90.00, date: "2025-09-26", status: "pending", message: "Keep going" },
-    { id: 506, supporter: "Ben River", amount: 100.00, date: "2025-09-25", status: "pending", message: "" },
-    { id: 507, supporter: "Chloe Sky", amount: 115.00, date: "2025-09-24", status: "pending", message: "Amazing" },
-    { id: 508, supporter: "Dylan Storm", amount: 95.00, date: "2025-09-23", status: "pending", message: "" },
-    { id: 509, supporter: "Ella Rain", amount: 120.00, date: "2025-09-22", status: "pending", message: "Fantastic" },
-    { id: 510, supporter: "Finn Snow", amount: 85.00, date: "2025-09-21", status: "pending", message: "" },
-    { id: 511, supporter: "Gina Sun", amount: 90.00, date: "2025-09-20", status: "pending", message: "Great job" },
-    { id: 512, supporter: "Hugo Cloud", amount: 95.00, date: "2025-09-19", status: "pending", message: "" },
-    { id: 513, supporter: "Ivy Moon", amount: 250.00, date: "2025-09-15", status: "approved", message: "" }
-  ]
-};
+import { useRouter } from "next/navigation";
+import api from "@/config/api";
+import toast from "react-hot-toast";
+import Loading from "@/components/loading";
 
 
 
 export default function AdminTransactionPage() {
   const [selectedUser, setSelectedUser] = useState(null);
-  const [transactions, setTransactions] = useState(mockTransactions);
-  const [users, setUsers] = useState(mockUsers);
+  const [transactions, setTransactions] = useState({});
+  const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [approving, setApproving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-    const { data: session, status } = useSession();
+  const [loading, setLoading] = useState(true);
+  const [globalStats, setGlobalStats] = useState({
+    totalBalance: 0,
+    totalTransferred: 0,
+    totalEverReceived: 0,
+    totalPendingTransactions: 0
+  });
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const API = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+  // Calculate global stats from state
+  const totalBalance = globalStats.totalBalance;
+  const totalTransferred = globalStats.totalTransferred;
+  const totalEverReceived = globalStats.totalEverReceived;
+  const totalPendingTransactions = globalStats.totalPendingTransactions;
 
-  // Calculate global stats
-  const totalBalance = users.reduce((sum, u) => sum + u.balance, 0);
-  const totalTransferred = users.reduce((sum, u) => sum + u.totalTransferred, 0);
-  const totalEverReceived = users.reduce((sum, u) => sum + u.totalReceived, 0);
-  const totalPendingTransactions = users.reduce((sum, u) => sum + u.pendingCount, 0);
-
-  useEffect(()=>{
+  useEffect(() => {
     if (status === "loading") return;
 
-        if (status === "unauthenticated") {
-            router.replace("/");
-            return;
-        }
-  },[])
+    if (status === "unauthenticated") {
+      router.replace("/");
+      return;
+    }
+
+    if (status === "authenticated") {
+      fetchDashboardData();
+    }
+  }, [status]);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`${API}/admin/dashboard`);
+      
+      setUsers(response.data.users);
+      setTransactions(response.data.transactions);
+      setGlobalStats(response.data.globalStats);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleUserClick = (user) => {
     setSelectedUser(user);
@@ -147,26 +72,17 @@ export default function AdminTransactionPage() {
     setSelectedUser(null);
   };
 
-  const handleApproveAll = () => {
+  const handleApproveAll = async () => {
     if (!selectedUser) return;
 
     setApproving(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      // Update all pending transactions to approved
-      const updatedTransactions = { ...transactions };
-      const userPendingAmount = updatedTransactions[selectedUser.id]
-        .filter(t => t.status === 'pending')
-        .reduce((sum, t) => sum + t.amount, 0);
+    try {
+      const response = await api.post(`${API}/admin/approve-payout`, {
+        userId: selectedUser.id
+      });
 
-      updatedTransactions[selectedUser.id] = updatedTransactions[selectedUser.id].map(t => ({
-        ...t,
-        status: 'approved'
-      }));
-      setTransactions(updatedTransactions);
-
-      // Update user's balance, transferred amount, and pending count
+      // Update user's balance and stats
       const updatedUsers = users.map(u => {
         if (u.id === selectedUser.id) {
           return { 
@@ -184,14 +100,30 @@ export default function AdminTransactionPage() {
       const updatedSelectedUser = updatedUsers.find(u => u.id === selectedUser.id);
       setSelectedUser(updatedSelectedUser);
 
-      setApproving(false);
+      // Update transactions to show as approved
+      const updatedTransactions = { ...transactions };
+      if (updatedTransactions[selectedUser.id]) {
+        updatedTransactions[selectedUser.id] = updatedTransactions[selectedUser.id].map(t => ({
+          ...t,
+          status: 'approved'
+        }));
+        setTransactions(updatedTransactions);
+      }
+
       setShowSuccess(true);
+      toast.success("Payout approved successfully!");
 
       // Hide success message after 3 seconds
       setTimeout(() => {
         setShowSuccess(false);
       }, 3000);
-    }, 2000);
+
+    } catch (error) {
+      console.error("Error approving payout:", error);
+      toast.error("Failed to approve payout");
+    } finally {
+      setApproving(false);
+    }
   };
 
   const filteredUsers = users.filter(user =>
@@ -202,6 +134,11 @@ export default function AdminTransactionPage() {
   const userTransactions = selectedUser ? transactions[selectedUser.id] || [] : [];
   const pendingTransactions = userTransactions.filter(t => t.status === 'pending');
   const approvedTransactions = userTransactions.filter(t => t.status === 'approved');
+
+  // Loading state
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <>
