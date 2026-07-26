@@ -2,14 +2,27 @@ try { require("dotenv").config(); } catch (e) {}
 const express = require("express")
 const cors = require('cors')
 const app = express()
+app.set("trust proxy", 1);
 const PORT = 4000
 const Auth = require("./auth/auth")
 const User = require("./app/app")
 const Flutter = require("./flutterWave/flutter")
 const admin = require("./admin/admin")
 
+const allowedOrigins = [
+  "https://gala.codegit.tech",
+  "http://localhost:3000",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-    origin: (origin, callback) => callback(null, true),
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or OBS browser widgets)
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive fallback while supporting credentials
+    },
     credentials: true
 }))
 
