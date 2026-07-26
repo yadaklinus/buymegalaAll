@@ -20,14 +20,17 @@ const Webhook = async (req, res) => {
     const event = req.body;
     console.log("📬 Incoming webhook:", JSON.stringify(event, null, 2));
 
+    const eventData = event.data || event;
+    const eventStatus = eventData.status || event.status;
+
     // Only process successful payments
-    if (event.status !== "successful") {
-      console.log(`⚠️ Payment not successful. Status: ${event.status}`);
+    if (eventStatus !== "successful") {
+      console.log(`⚠️ Payment not successful. Status: ${eventStatus}`);
       return res.status(200).json({ status: "ignored" });
     }
 
     // Verify the transaction with Flutterwave API
-    const transactionId = event.id;
+    const transactionId = eventData.id || event.id;
     if (!transactionId) {
       console.log("❌ No transaction ID in webhook");
       return res.status(400).json({ error: "No transaction ID" });
