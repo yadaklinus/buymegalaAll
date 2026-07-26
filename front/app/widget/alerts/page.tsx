@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import api from "@/config/api";
 
-export default function WidgetAlertsPage() {
+function AlertWidgetContent() {
   const searchParams = useSearchParams();
   const username = searchParams.get("username") || "";
 
@@ -147,5 +147,13 @@ export default function WidgetAlertsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function WidgetAlertsPage() {
+  return (
+    <Suspense fallback={null}>
+      <AlertWidgetContent />
+    </Suspense>
   );
 }
