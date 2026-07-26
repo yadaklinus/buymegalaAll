@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { Check, User, CreditCard, Settings, ArrowRight, ArrowLeft, AlertCircle, CheckCircle, Upload, Camera, Shield } from 'lucide-react';
-import { useSession } from "next-auth/react";
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from "next/navigation";
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -9,7 +9,7 @@ import Loading from '@/components/loading';
 import api from '@/config/api';
 
 export default function SetupPage() {
-    const { data: session, status } = useSession();
+    const { user, loading: authLoading, refreshUser } = useAuth();
     const router = useRouter();
     const [currentStep, setCurrentStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
@@ -76,20 +76,30 @@ export default function SetupPage() {
         return bank ? bank.code : null;
       };
       
-      // Effect for session + profile prefill
+      // Effect for session + profile prefill & setup completion guard
       useEffect(() => {
-        if (status === "unauthenticated") {
+        if (!authLoading && !user) {
           router.replace("/signin");
+          return;
         }
       
-        if (status === "authenticated" && session?.user) {
+        if (user?.email) {
+          api
+            .get(`/user/checkSetup/${user.email}`)
+            .then((res) => {
+              if (res.data?.isSetupComplete) {
+                router.replace("/dashboard");
+              }
+            })
+            .catch(() => {});
+
           setProfileData(prev => ({
             ...prev,
-            displayName: session?.user?.name || '',
-            username: session?.user?.email?.split('@')[0] || ''
+            displayName: user.name || '',
+            username: user.username || user.email?.split('@')[0] || ''
           }));
         }
-      }, [status, session, router]);
+      }, [authLoading, user, router]);
       
       // Effect for username availability check
       useEffect(() => {
@@ -259,8 +269,8 @@ export default function SetupPage() {
       
         setIsLoading(true);
         try {
-          await api.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/setup`, {
-            email: session?.user?.email,
+          await api.post(`/user/setup`, {
+            email: user?.email,
             displayName: profileData.displayName,
             username: profileData.username,
             bankDetails,
@@ -271,6 +281,7 @@ export default function SetupPage() {
           });
       
           toast.success('Setup completed successfully!');
+          await refreshUser();
           router.push('/dashboard');
         } catch (error) {
           toast.error('Setup failed. Please try again.');
@@ -280,7 +291,7 @@ export default function SetupPage() {
         }
       };
       
-      if (status === "loading") {
+      if (authLoading) {
         return (
           <Loading/>
         );

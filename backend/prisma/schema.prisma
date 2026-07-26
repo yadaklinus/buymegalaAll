@@ -10,7 +10,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgres"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -22,21 +22,43 @@ model User {
   image         String?
 
   // Custom fields
+  password String?
   username String? @unique
   role     Role    @default(USER)
 
   bio String?
 
   galaPrice Int?
+  currency  String  @default("NGN")
   goLive    Boolean @default(false)
 
   pin String?
+
+  // Goal Progress fields
+  goalTitle     String?
+  goalTarget    Int?      // target amount in NGN or galas
+  goalActive    Boolean   @default(false)
+
+  // KYC Tier & Anti-Money Laundering (AML) Compliance
+  kycTier       Int     @default(1) // 1: Free, 2: BVN or NIN, 3: BVN and NIN
+  bvn           String?
+  nin           String?
+  dob           String? // Date of birth (YYYY-MM-DD) for BVN validation
+  bvnVerified   Boolean @default(false)
+  ninVerified   Boolean @default(false)
 
   // Payout / checkout details
   bankName      String?
   accountNumber String?
   accountName   String?
-  bvn           String? // optional, later stage
+
+  // Governance & Admin Controls
+  isFrozen        Boolean @default(false)
+  adminNotes      String?
+
+  // 2FA / Google Authenticator
+  twoFactorSecret  String?
+  twoFactorEnabled Boolean @default(false)
 
   // Relations
   accounts    Account[]
@@ -116,7 +138,7 @@ model Transaction {
   type         TransactionType
   amount       Int
   status       PaymentStatus   @default(PENDING)
-  reference    String?          @unique // Flutterwave ref
+  reference    String?         @unique // Flutterwave ref
   description  String?
   isWithdrawal Boolean         @default(false)
   createdAt    DateTime        @default(now())
@@ -124,14 +146,14 @@ model Transaction {
 }
 
 model Withdraw {
-  id           String        @id @default(cuid())
-  userId       String
-  amount       Int
-  status       PaymentStatus @default(PENDING)
-  reference    String?        @unique // Flutterwave ref
-  description  String?
-  createdAt    DateTime      @default(now())
-  user         User          @relation(fields: [userId], references: [id])
+  id          String        @id @default(cuid())
+  userId      String
+  amount      Int
+  status      PaymentStatus @default(PENDING)
+  reference   String?       @unique // Flutterwave ref
+  description String?
+  createdAt   DateTime      @default(now())
+  user        User          @relation(fields: [userId], references: [id])
 }
 
 enum TransactionType {
@@ -152,3 +174,14 @@ enum PaymentStatus {
   SUCCESS
   FAILED
 }
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String
+  targetId  String?
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
+

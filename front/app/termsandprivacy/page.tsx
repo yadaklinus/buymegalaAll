@@ -71,7 +71,7 @@ const termsAndConditions = [
     {
       heading: "Contact Us",
       content:
-        "If you have questions or concerns regarding these Terms and Conditions, please contact us at: support@buymegala.com"
+        "If you have questions or concerns regarding these Terms and Conditions, please contact us at: support@codegit.tech"
     }
   ]
   

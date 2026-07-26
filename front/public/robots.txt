@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /explore
+Allow: /@*
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /setting
+Disallow: /verify-email
+Disallow: /api/
+
+Sitemap: https://gala.codegit.tech/sitemap.xml

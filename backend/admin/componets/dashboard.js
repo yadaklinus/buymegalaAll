@@ -41,7 +41,9 @@ const Dashboard = async (req, res) => {
                 pendingCount: pendingWithdrawals.length,
                 bankName: user.bankName,
                 accountNumber: user.accountNumber,
-                accountName: user.accountName
+                accountName: user.accountName,
+                isFrozen: !!user.isFrozen,
+                adminNotes: user.adminNotes || ''
             }
         })
 

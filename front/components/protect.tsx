@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import api from "@/config/api";
 import Loading from "./loading";
@@ -9,20 +9,25 @@ import Loading from "./loading";
 const API = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export default function Auths() {
-  const { data: session, status } = useSession();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (loading) return;
 
-    if (status === "unauthenticated") {
-      router.replace("/");
+    if (!user) {
+      router.replace("/signin");
       return;
     }
 
-    if (status === "authenticated" && session?.user?.email) {
+    if (user && !user.emailVerified) {
+      router.replace("/verify-email");
+      return;
+    }
+
+    if (user?.email) {
       api
-        .get(`${API}/user/checkSetup/${session.user.email}`)
+        .get(`${API}/user/checkSetup/${user.email}`)
         .then((res) => {
           const { isSetupComplete } = res.data;
           if (!isSetupComplete) {
@@ -31,10 +36,9 @@ export default function Auths() {
         })
         .catch((err) => {
           console.error("Auth check failed:", err);
-          router.replace("/"); // fallback if error
         });
     }
-  }, [status, session, router]);
+  }, [loading, user, router]);
 
   
 

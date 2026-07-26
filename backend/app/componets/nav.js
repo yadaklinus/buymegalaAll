@@ -14,6 +14,7 @@ const Nav = async (req, res) => {
 
         return res.status(200).json({
             username: user.username,
+            role: user.role,
         });
 
     } catch (error) {

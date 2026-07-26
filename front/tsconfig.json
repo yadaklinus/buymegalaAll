@@ -14,7 +14,6 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "types": ["next-auth"],
     "plugins": [
       {
         "name": "next"
@@ -24,6 +23,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts","next-auth.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/admin/page.jsx", "app/[page]/page.jsx", "app/[page]/page.jsx", "app/thankyou/page.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/admin/page.jsx", "app/[page]/page.jsx", "app/thankyou/page.jsx"],
   "exclude": ["node_modules"]
 }

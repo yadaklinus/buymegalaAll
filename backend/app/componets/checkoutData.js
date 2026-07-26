@@ -1,14 +1,14 @@
 const prisma = require("../../prisma/prisma")
 
 const CheckoutData = async (req,res) =>{
-    const {email} = req.body
+    const email = req.user?.email;
 
-    console.log(email)
+    if (!email) return res.status(401).json({ message: "Unauthorized access" });
 
     try {
         const user = await prisma.user.findUnique({where:{email}})
         
-        if(!user) return res.status(400).json({mesage:"user not found"})
+        if(!user) return res.status(400).json({message:"user not found"})
 
         const wallet = await prisma.wallet.findUnique({
             where:{userId:user.id}

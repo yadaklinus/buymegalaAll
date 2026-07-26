@@ -1,96 +1,78 @@
+"use client";
+
 import "@/styles/globals.css";
 import "@/styles/style.css";
-import { Metadata, Viewport } from "next";
-
 import clsx from "clsx";
-
-import {Toaster} from 'react-hot-toast'
-import 'dotenv'
-import { Analytics } from "@vercel/analytics/next"
-
-import  Navbar  from "@/components/navbar";
+import { Toaster } from "react-hot-toast";
+import { Analytics } from "@vercel/analytics/next";
+import Navbar from "@/components/navbar";
 import SessionProvide from "@/components/sessionProvider";
+import { usePathname } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Buy Me Gala",
-  description:
-    "A friendly, fast way for fans to support your work. Set your Gala price and share your page.",
-  keywords: ["codegit", "code git", "coding", "teaching"],
-  // authors: [{ name: "Yadak Linus", url: "https://yadak.com.ng" }],
-  // metadataBase: new URL("https://yadak.com.ng"),
-  robots: {
-    index: true,
-    follow: true,
-  },
-  // alternates: {
-  //   canonical: "https://yadak.com.ng",
-  // },
-  icons: {
-    icon: "./gala.png",
-  },
-  // openGraph: {
-  //   title: "Yadak Linus",
-  //   description:
-  //     "A Creative Developer who builds beautiful, responsive, and unique web experiences. I'm also passionate about teaching the next generation of developers.",
-  //   type: "website",
-  //   url: "https://yadak.com.ng",
-  //   images: [
-  //     {
-  //       url: "https://placehold.co/1200x630/0a101e/ffffff?text=Yadak-Linus",
-  //       width: 1200,
-  //       height: 630,
-  //       alt: "Yadak Linus Project Preview Image",
-  //     },
-  //   ],
-  // },
-  // twitter: {
-  //   card: "summary_large_image",
-  //   title: "Yadak Linus",
-  //   description:
-  //     "A Creative Developer who builds beautiful, responsive, and unique web experiences. I'm also passionate about teaching the next generation of developers.",
-  //   images: [
-  //     "https://placehold.co/1200x630/0a101e/ffffff?text=Yadak-Linus",
-  //   ],
-  // },
-};
+const year = new Date().getFullYear();
 
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "white" },
-    { media: "(prefers-color-scheme: dark)", color: "black" },
-  ],
-};
+export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isWidget = pathname?.startsWith("/widget");
 
-const year = new Date().getFullYear()
+  if (isWidget) {
+    return (
+      <SessionProvide>
+        <html suppressHydrationWarning lang="en" className="bg-transparent">
+          <body className="bg-transparent overflow-hidden">
+            {children}
+          </body>
+        </html>
+      </SessionProvide>
+    );
+  }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
   return (
     <SessionProvide>
-    <html suppressHydrationWarning lang="en">
-      
-      <body
-        className={clsx(
-          "min-h-screen text-foreground bg-background font-sans antialiased",
-        
-        )}
-      >
-        <div className="bg-gray-100 min-h-screen font-sans antialiased">
-            <Navbar/>
-            <main className="p-4 sm:p-6 lg:p-8">
-              <Toaster/>
-              <Analytics/>
-                {children}
+      <html suppressHydrationWarning lang="en">
+        <head>
+          <title>Buy Me Gala - Support Creators Effortlessly</title>
+          <meta name="description" content="Buy Me Gala is the fastest, simplest platform for fans to support creators, streamers, and developers directly." />
+          <meta name="keywords" content="Buy Me Gala, creator support, micro-donations, creator platform, Nigerian creators" />
+          <meta name="robots" content="index, follow, max-image-preview:large" />
+          <link rel="icon" type="image/png" href="/gala.png" />
+          <link rel="apple-touch-icon" href="/gala.png" />
+          <meta property="og:site_name" content="Buy Me Gala" />
+          <meta property="og:type" content="website" />
+          <meta property="og:title" content="Buy Me Gala - Support Creators Effortlessly" />
+          <meta property="og:description" content="A friendly, fast way for fans to support your work. Set your Gala price and share your page." />
+          <meta name="twitter:card" content="summary_large_image" />
+        </head>
+        <body className={clsx("min-h-screen bg-gray-50 font-sans antialiased text-gray-900")}>
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  style: {
+                    borderRadius: "12px",
+                    background: "#1f2937",
+                    color: "#fff",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                  },
+                }}
+              />
+              <Analytics />
+              {children}
             </main>
-             <footer className="text-center py-4 mt-8 text-gray-500 text-sm">
-                <p>Buy Me A Gala &copy; {year} Developed by Code Git.</p>
+            <footer className="border-t border-gray-200 bg-white mt-12">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center">
+                <p className="text-gray-400 text-sm">
+                  Buy Me A Gala &copy; {year} &mdash; Developed with ❤️ by{" "}
+                  <span className="text-yellow-500 font-semibold">Code Git</span>
+                </p>
+              </div>
             </footer>
-        </div>
-      </body>
-    </html>
+          </div>
+        </body>
+      </html>
     </SessionProvide>
   );
 }

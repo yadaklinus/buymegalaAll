@@ -14,16 +14,30 @@ CREATE TABLE "public"."User" (
     "email" TEXT NOT NULL,
     "emailVerified" TIMESTAMP(3),
     "image" TEXT,
+    "password" TEXT,
     "username" TEXT,
     "role" "public"."Role" NOT NULL DEFAULT 'USER',
     "bio" TEXT,
     "galaPrice" INTEGER,
+    "currency" TEXT NOT NULL DEFAULT 'NGN',
     "goLive" BOOLEAN NOT NULL DEFAULT false,
     "pin" TEXT,
+    "goalTitle" TEXT,
+    "goalTarget" INTEGER,
+    "goalActive" BOOLEAN NOT NULL DEFAULT false,
+    "kycTier" INTEGER NOT NULL DEFAULT 1,
+    "bvn" TEXT,
+    "nin" TEXT,
+    "dob" TEXT,
+    "bvnVerified" BOOLEAN NOT NULL DEFAULT false,
+    "ninVerified" BOOLEAN NOT NULL DEFAULT false,
     "bankName" TEXT,
     "accountNumber" TEXT,
     "accountName" TEXT,
-    "bvn" TEXT,
+    "isFrozen" BOOLEAN NOT NULL DEFAULT false,
+    "adminNotes" TEXT,
+    "twoFactorSecret" TEXT,
+    "twoFactorEnabled" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -97,12 +111,38 @@ CREATE TABLE "public"."Transaction" (
     "type" "public"."TransactionType" NOT NULL,
     "amount" INTEGER NOT NULL,
     "status" "public"."PaymentStatus" NOT NULL DEFAULT 'PENDING',
-    "reference" TEXT NOT NULL,
+    "reference" TEXT,
     "description" TEXT,
     "isWithdrawal" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Transaction_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."Withdraw" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "amount" INTEGER NOT NULL,
+    "status" "public"."PaymentStatus" NOT NULL DEFAULT 'PENDING',
+    "reference" TEXT,
+    "description" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Withdraw_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."AuditLog" (
+    "id" TEXT NOT NULL,
+    "adminId" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "targetId" TEXT,
+    "details" TEXT,
+    "ipAddress" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AuditLog_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -132,6 +172,9 @@ CREATE UNIQUE INDEX "Wallet_userId_key" ON "public"."Wallet"("userId");
 -- CreateIndex
 CREATE UNIQUE INDEX "Transaction_reference_key" ON "public"."Transaction"("reference");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Withdraw_reference_key" ON "public"."Withdraw"("reference");
+
 -- AddForeignKey
 ALTER TABLE "public"."Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -146,3 +189,6 @@ ALTER TABLE "public"."Wallet" ADD CONSTRAINT "Wallet_userId_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "public"."Transaction" ADD CONSTRAINT "Transaction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Withdraw" ADD CONSTRAINT "Withdraw_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

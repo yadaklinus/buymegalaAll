@@ -2,8 +2,8 @@ const prisma = require("../../prisma/prisma");
 const Flutterwave = require("flutterwave-node-v3");
 
 const flw = new Flutterwave(
-  process.env.FLW_PUBLIC_KEY,
-  process.env.FLW_SECRET_KEY
+  process.env.FLW_PUBLIC_KEY || "FLWPUBK_TEST-PLACEHOLDER",
+  process.env.FLW_SECRET_KEY || "FLWSECK_TEST-PLACEHOLDER"
 );
 
 const Webhook = async (req, res) => {
@@ -57,8 +57,9 @@ const Webhook = async (req, res) => {
     const tx_ref = tx.tx_ref;
     const amount = tx.amount;
 
-    // Extract user ID from reference
-    const userId = tx_ref.split("-")[1];
+    // Extract user ID from reference (supports BMG-id and BMG-VA-id)
+    const refParts = tx_ref.split("-");
+    const userId = tx_ref.startsWith("BMG-VA-") ? refParts[2] : refParts[1];
     if (!userId) {
       console.log("❌ Invalid tx_ref format");
       return res.status(400).json({ error: "Invalid reference" });
@@ -103,8 +104,19 @@ const Webhook = async (req, res) => {
           where: { transactionId: tx_ref },
           data: {
             status: "SUCCESS",
-            amount: Math.round(amount), // Convert to kobo
+            amount: Math.round(amount),
           },
+        });
+      } else {
+        await prisma.support.create({
+          data: {
+            creatorId: userId,
+            supporter: tx.customer?.name || "Anonymous Supporter",
+            amount: Math.round(amount),
+            transactionId: tx_ref,
+            status: "SUCCESS",
+            message: tx.narrative || ""
+          }
         });
       }
 

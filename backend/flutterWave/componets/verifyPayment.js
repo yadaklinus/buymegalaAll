@@ -3,8 +3,8 @@ const Flutterwave = require("flutterwave-node-v3");
 const prisma = require("../../prisma/prisma");
 
 const flw = new Flutterwave(
-  process.env.FLW_PUBLIC_KEY,
-  process.env.FLW_SECRET_KEY
+  process.env.FLW_PUBLIC_KEY || "FLWPUBK_TEST-PLACEHOLDER",
+  process.env.FLW_SECRET_KEY || "FLWSECK_TEST-PLACEHOLDER"
 );
 
 const VerifyPayment = async (req, res) => {

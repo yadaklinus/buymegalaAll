@@ -1,11 +1,12 @@
 const prisma = require("../../prisma/prisma");
 
 const Dashboard = async (req, res) => {
-    const { email, supportersPage = 1, payoutsPage = 1 } = req.body;
+    const email = req.user?.email;
+    const { supportersPage = 1, payoutsPage = 1 } = req.body;
     const limit = 5; // Items per page
 
     try {
-        if (!email) return res.status(401).json({ message: "Email Required" });
+        if (!email) return res.status(401).json({ message: "Unauthorized access" });
 
         const user = await prisma.user.findUnique({
             where: { email },
@@ -58,6 +59,7 @@ const Dashboard = async (req, res) => {
             name: user.name,
             totalEarnings: totalEarnings, // Total amount ever received
             walletBalance: walletBalance,  // Current wallet balance
+            currency: user.currency || "NGN",
             totalSupporters: totalSupports,
             username: user.username,
             supports: {

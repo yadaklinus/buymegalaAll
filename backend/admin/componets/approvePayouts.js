@@ -1,9 +1,28 @@
 const prisma = require("../../prisma/prisma")
+const { verify } = require("otplib")
 
 const ApprovePayouts = async (req, res) => {
-    const { userId } = req.body
+    const { userId, totpCode } = req.body
 
     try {
+        const adminId = req.user.id;
+        const adminUser = await prisma.user.findUnique({ where: { id: adminId } });
+
+        // If 2FA is enabled for admin, verify TOTP token
+        if (adminUser?.twoFactorEnabled) {
+            if (!totpCode) {
+                return res.status(400).json({ message: "2FA authentication code required" });
+            }
+            const isValidResult = await verify({
+                token: totpCode,
+                secret: adminUser.twoFactorSecret || ""
+            });
+            const isValidTotp = typeof isValidResult === 'boolean' ? isValidResult : isValidResult?.valid;
+            if (!isValidTotp) {
+                return res.status(400).json({ message: "Invalid 2FA authentication code" });
+            }
+        }
+
         // Get user and their wallet
         const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -59,6 +78,19 @@ const ApprovePayouts = async (req, res) => {
             where: { userId: user.id },
             data: { balance: 0 }
         })
+
+        // Log admin action in AuditLog
+        if (req.user && req.user.id) {
+            await prisma.auditLog.create({
+                data: {
+                    adminId: req.user.id,
+                    action: "APPROVE_PAYOUT",
+                    targetId: user.id,
+                    details: JSON.stringify({ amount: withdrawAmount, accountNumber: user.accountNumber, bankName: user.bankName }),
+                    ipAddress: req.ip || req.headers['x-forwarded-for'] || null
+                }
+            }).catch(e => console.error("Audit log creation error:", e));
+        }
 
         res.status(200).json({
             message: "Payout approved successfully",
