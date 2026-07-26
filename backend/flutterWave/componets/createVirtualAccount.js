@@ -43,7 +43,7 @@ const CreateVirtualAccount = async (req, res) => {
                 tx_ref,
                 amount: parsedAmount,
                 currency: "NGN",
-                account_name: `Buy Me Gala / @${cleanUsername}`,
+                narration: `Buy Me Gala / @${cleanUsername}`,
                 narrative: `Buy Me Gala Support for @${cleanUsername}`
             },
             {
@@ -71,8 +71,8 @@ const CreateVirtualAccount = async (req, res) => {
 
     } catch (error) {
         console.error("Error creating Flutterwave Virtual Account:", error.response?.data || error.message);
-        return res.status(500).json({ 
-            error: error.response?.data?.message || "Failed to generate virtual account. Please use card payment." 
+        return res.status(500).json({
+            error: error.response?.data?.message || "Failed to generate virtual account. Please use card payment."
         });
     }
 };
