@@ -14,6 +14,7 @@ export interface User {
   image?: string;
   goLive?: boolean;
   galaPrice?: number;
+  emailVerified?: boolean;
 }
 
 interface AuthContextType {

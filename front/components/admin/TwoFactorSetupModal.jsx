@@ -3,7 +3,6 @@ import { QrCode, ShieldCheck, X, KeyRound } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/config/api';
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export default function TwoFactorSetupModal({ isOpen, onClose, onSuccess }) {
   const [step, setStep] = useState(1); // 1: QR Setup, 2: Code Verification

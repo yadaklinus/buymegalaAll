@@ -14,7 +14,6 @@ import ConfirmPayoutModal from '@/components/admin/ConfirmPayoutModal';
 import AuditLogTable from '@/components/admin/AuditLogTable';
 import TwoFactorSetupModal from '@/components/admin/TwoFactorSetupModal';
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export default function AdminTransactionPage() {
   const [activeTab, setActiveTab] = useState('payouts'); // 'payouts' | 'audit'
