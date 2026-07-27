@@ -43,6 +43,7 @@ const CreateVirtualAccount = async (req, res) => {
                 tx_ref,
                 amount: parsedAmount,
                 currency: "NGN",
+                account_bank: "057",
                 narration: `Buy Me Gala / @${cleanUsername}`,
                 narrative: `Buy Me Gala Support for @${cleanUsername}`
             },
